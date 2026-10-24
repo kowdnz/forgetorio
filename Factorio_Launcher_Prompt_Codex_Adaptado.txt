@@ -1,0 +1,202 @@
+# FACTORIO MODPACK LAUNCHER — PROMPT DE EXECUÇÃO PARA CODEX
+# Cole este texto no Codex (VS Code/CLI), com a pasta do projeto aberta.
+
+Você é o agente de desenvolvimento responsável por transformar ESTE workspace em um aplicativo Windows funcional. Trabalhe como engenheiro sênior full-stack desktop: inspecione os arquivos, planeje brevemente, edite código, execute comandos, rode testes e corrija falhas. A missão é ENTREGAR SOFTWARE UTILIZÁVEL, não apenas propor arquitetura, produzir mocks ou escrever uma lista de tarefas.
+
+## 0. INSTRUÇÕES OPERACIONAIS PARA VOCÊ, CODEX
+
+1. Inspecione primeiro o workspace (incluindo AGENTS.md, se existir) e identifique se há projeto anterior. Preserve trabalho existente. Se o diretório estiver vazio, inicialize o projeto nele.
+2. Antes de codificar, faça um plano objetivo de até 8 passos e então EXECUTE-O. Evite reuniões de requisitos e perguntas sobre detalhes triviais; tome decisões sensatas e documente-as.
+3. Use as ferramentas do ambiente (terminal, edição de arquivos, testes, acesso a documentação se disponível). Não finja ter compilado, rodado ou validado algo que não pôde executar.
+4. Implemente uma funcionalidade end-to-end de cada vez, com teste: não espalhe dezenas de botões falsos na UI. Se algo não está implementado, desabilite ou identifique honestamente.
+5. Após cada marco, rode os testes relevantes e corrija os problemas detectados. Faça progresso contínuo, sem encerrar na fase de planejamento.
+6. Não apague ou mova dados reais do Factorio. Não altere a instalação Steam, os saves existentes, os mods globais nem tokens de acesso. Trabalhe no diretório de dados próprio do launcher. Acesso de leitura/cópia de dados existentes apenas com consentimento explícito na interface.
+7. Antes de ações destrutivas no repositório (sobrescrever código anterior, remover diretórios, reset de git), verifique o impacto. Não faça push, não publique releases nem suba arquivos a serviços externos sem autorização.
+8. Se a internet, a autenticação, a instalação do Factorio ou ferramentas Windows não estiverem disponíveis, faça testes isolados com mocks, implemente fallbacks e registre precisamente o que ficou sem teste real. Não deixe essa limitação bloquear o restante do app.
+9. Mantenha README.md em PT-BR e um docs/STATUS.md atualizado com funcionalidades reais, pendências e instruções de teste manual. Ao final apresente arquivos criados, testes, como executar, como gerar o .exe e limitações comprovadas.
+10. Use PT-BR nos textos de interface. Use nomes claros e consistentes para classes e funções; inglês no código é aceitável.
+
+## 1. PRODUTO FINAL
+
+Nome provisório: Factorio Modpack Launcher.
+Plataforma inicial: Windows 10/11.
+Visual: desktop app moderno, tema escuro e organização inspirada no CurseForge/Prism Launcher, com identidade visual própria. Não copiar marca, ícones, códigos nem ativos proprietários.
+
+O usuário precisa:
+- Criar perfis ilimitados, por exemplo Krastorio 2, Space Exploration, Vanilla, Arcane Industry (desenvolvimento).
+- Iniciar cada perfil com seus próprios mods e versões, sem apagar ou ativar/desativar manualmente os mods de outro perfil.
+- Escolher em CADA perfil entre saves COMPARTILHADOS e EXCLUSIVOS.
+- Descobrir mods pelo Mod Portal oficial e instalá-los fora do jogo, quando a API/autenticação permitirem.
+- Importar arquivos ZIP de mods locais mesmo offline, sem exigir conta no Mod Portal.
+- Atualizar, habilitar/desabilitar, remover mods e identificar dependências ou incompatibilidades.
+- Exportar/importar listas de mods e backups com proteção contra perdas.
+- Usar um único Factorio já instalado, sem redistribuir o jogo.
+
+Priorize um MVP seguro e operacional. Extras são bem-vindos APÓS os fluxos essenciais funcionarem.
+
+## 2. STACK E DIRETRIZES
+
+Preferência padrão (não altere sem motivo técnico concreto):
+- Python 3.12+; PySide6 / Qt Widgets; httpx; pytest; PyInstaller.
+- pyproject.toml com dependências e entrypoint; scripts PowerShell start.ps1 e build.ps1.
+- Arquitetura modular: ui/, models/, services/, persistence/, tests/.
+- Dados do usuário em %LOCALAPPDATA%/FactorioModpackLauncher/ (ou configuração equivalente com pathlib); instalação do jogo nunca usada como armazenamento do launcher.
+- Arquivos JSON com schema_version, escritas atômicas (arquivo temporário + substituição), backups e migração futura.
+- Rede e operações de disco fora da thread da UI; progressos reais e cancelamento onde fizer sentido.
+- subprocess com lista de argumentos e shell=False. Suporte correto a caminhos com espaços, caracteres Unicode e instalações fora do disco C:.
+- Logging com rotação e remoção de segredos. Nunca logar tokens ou URLs autenticadas.
+- Criar testes unitários e de integração isolados do PC do usuário: usar tmp_path e mocks. Os testes NÃO podem modificar %APPDATA%/Factorio de verdade.
+
+## 3. ESCOPO DE INTERFACE
+
+Estrutura visual:
+- Sidebar: Biblioteca, Explorar Mods, Downloads, Configurações.
+- Biblioteca: cards de perfis com título, imagem/cor configurável, quantidade de mods, versão do Factorio, modo de saves e botão JOGAR.
+- Criar perfil: nome, instalação do Factorio, template (vazio/importar instalação atual/duplicar), saves compartilhados ou exclusivos.
+- Detalhes do perfil: Jogar, Mods, Saves, Configurações, Backup, Importar/Exportar, Duplicar e Excluir.
+- Mods do perfil: habilitar/desabilitar, instalar ZIP, procurar no Mod Portal, remover, atualizar, fixar versão, visualizar dependências.
+- Explorar Mods: busca, filtros de compatibilidade, página com resumo, versão, autor e descrição quando API permitir; instalação sempre direcionada a um perfil selecionado.
+- Downloads: fila, progresso, erros explicativos, retry.
+- Configurações: instalações do Factorio, pastas, dados do launcher, preferências de download, autenticação segura (se suportada), logs e diagnóstico.
+
+Trate estados reais: sem Factorio detectado, sem mods, offline, credenciais ausentes, download falhou, dependência incompatível, app carregando. Não use dados de mods falsos em telas de produção.
+
+## 4. ORDEM DE IMPLEMENTAÇÃO: NÃO INVERTA
+
+### MARCO 1 — FUNDAÇÃO + MVP LOCAL (obrigatório)
+A. Inicializar projeto, ambiente e UI navegável.
+B. Detecção do Factorio: procurar caminhos Steam/standalone comuns, inclusive bibliotecas Steam em discos diferentes; permitir seleção manual. Validar executável e obter versão via `factorio.exe --version` (ou método confiável).
+C. Persistir instalações cadastradas.
+D. CRUD de perfis: criar, renomear, duplicar, listar, excluir com confirmação; cada perfil tem UUID, manifesto próprio e pasta de mods própria.
+E. Importação NÃO DESTRUTIVA de mods ZIP locais e, opcionalmente, da pasta de mods atual do Factorio. Ler info.json com segurança; gerar mod-list.json correto. Habilitar/desabilitar por perfil.
+F. Iniciar jogo com executável escolhido, `--mod-directory` e `--config` específicos; testar construção de argumentos. Não copiar nem mover arquivos globais. Detectar execução concorrente e bloquear operações inseguras.
+G. Interface para saves compartilhados/exclusivos com configuração coerente, avisos e testes (ver seção 5).
+H. Testes automatizados, README e um executável/app funcional em desenvolvimento. Este marco sozinho já deve permitir alternar modpacks locais.
+
+### MARCO 2 — MOD PORTAL (obrigatório quando viável)
+I. Cliente HTTP de consulta ao Mod Portal oficial: lista/paginação, detalhes e releases, cache local, erro offline, limite de requisições.
+J. Busca funcional: use somente endpoints e formatos efetivamente documentados/verificados. Se um endpoint interno de busca não estiver disponível, use alternativa fundamentada ou busca sobre catálogo armazenado em cache sem enganar o usuário.
+K. Exibir releases compatíveis e downloads por perfil com escolha de versão. Downloads autenticados SOMENTE com credenciais legítimas e disponíveis. Se não houver credenciais, preservar navegação e instalação de ZIP manual e deixar o download em estado 'Requer autenticação'.
+L. Validar hash SHA-1 informado pelo portal, estrutura ZIP, tamanho/limites razoáveis e baixar para `.part` antes de mover ao destino. Não extrair nem executar scripts de mods.
+M. Gerenciar dependências obrigatórias/transitivas, conflitos, versões e DLC. Se resolução automática não for confiável, mostrar as pendências e pedir confirmação, jamais instalar silenciosamente combinações incompatíveis.
+
+### MARCO 3 — CONFIABILIDADE E QUALIDADE
+N. Fixação de versões por perfil (lockfile), cache global de ZIPs por nome/versão/hash, sem compartilhar arquivos mutáveis entre perfis.
+O. Backup/snapshot e restauração antes de updates perigosos; avisar que carregar save em versão mais nova pode ser irreversível.
+P. Exportar/importar manifesto de modpack (sem redistribuir ZIPs de terceiros por padrão); diagnóstico do perfil e logs legíveis.
+Q. Perfil para desenvolvimento de mods: importar pasta local ou ZIP, abrir diretório, recarregar apenas por comando explícito, mostrar último erro de inicialização.
+R. Executar a suíte completa; melhorar UX; preparar build Windows e documentação final.
+
+Se o tempo/contexto for limitado, COMPLETE E TESTE o Marco 1 antes de avançar. Não entregue 50% de cada marco.
+
+## 5. ISOLAMENTO: REGRAS CRÍTICAS
+
+Parâmetros oficialmente documentados: `--mod-directory PATH`, `--config PATH`, `--version`.
+
+- Cada perfil deve ter: `profiles/<uuid>/manifest.json`, `mods/` (ZIPs, mod-list.json e ajustes pertinentes), `config/config.ini`; quando exclusivo, `userdata/saves/`.
+- Nunca implementar alternância movendo, removendo ou limpando `%APPDATA%/Factorio/mods`.
+- O modo COMPARTILHADO deve usar o diretório de dados/saves habitual do Factorio ou diretório compartilhado explicitamente configurado, enquanto `--mod-directory` permanece exclusivo ao perfil. Não suponha que um simples campo de texto altere o save-path sem testar.
+- O modo EXCLUSIVO deve usar um config.ini por perfil com `[path]` e `write-data` correspondente ao diretório do perfil. Preserve/derive corretamente `read-data` da instalação para que o Factorio encontre seus assets. NUNCA use hardcoded paths universais sem validação.
+- A configuração alternativa pode afetar também logs, blueprint library, player-data e outros dados além dos saves. Documente o que é isolado/compartilhado de verdade. Não copie automaticamente credenciais nem blueprints ou mod-settings de um modo para outro sem consentimento.
+- Não modificar `config-path.cfg` ou config.ini originais. Criar cópias próprias com caminhos adequados e preservar configurações importantes sem transportar segredos indevidamente.
+- Tentar validação real do launch/saves se houver Factorio instalado e possibilidade segura de teste. Deixar o usuário confirmar antes de criar/alterar saves reais. Se não houver instalação no ambiente, testar a geração do config.ini e marcar isolamento como 'aguardando validação no jogo'; NUNCA declarar verificado.
+- Alerta Steam Cloud: não manipular o diretório Steam userdata e não prometer que a Steam sincroniza ou ignora perfis como esperado sem teste.
+
+## 6. MOD PORTAL E SEGURANÇA DE LOGIN
+
+Documentação inicial:
+- https://wiki.factorio.com/Command_line_parameters
+- https://wiki.factorio.com/Application_directory
+- https://wiki.factorio.com/Mod_portal_API
+- https://wiki.factorio.com/Factorio_HTTP_API_usage_guidelines
+- https://mods.factorio.com/api/mods
+
+Detalhes de implementação:
+- Inspecionar a documentação e respostas REAIS antes de fixar schemas. Use `/api/mods` e `/api/mods/{name}/full` para consulta; não assumir que toda opção de ordenação/busca é suportada pelo mesmo endpoint.
+- A documentação descreve URLs de downloads de mods e autenticação por username/token. Não solicitar senha se um token autorizado for suficiente.
+- Importar token de `player-data.json` APENAS se o usuário clicar explicitamente para autorizar. Preferir Windows Credential Manager/keyring e nunca manter token em JSON, exportação, telemetria ou log. Nunca encaminhar credenciais a hosts não oficiais. Lidar com redirecionamentos com segurança para não vazar tokens.
+- Credenciais indisponíveis NÃO bloqueiam criação de perfis nem uso de ZIP local.
+- Usar HTTPS, timeouts, retry/backoff, identificação do cliente e limites conservadores. Validar hosts, nomes de arquivo, checksums e paths. Não fazer scraping agressivo.
+- Ao atualizar, não quebrar lockfiles nem sobrescrever versão fixada sem confirmação.
+
+## 7. COMPATIBILIDADE E DEPENDÊNCIAS
+
+- Ler `info.json` de ZIPs locais sem extrair todo o arquivo. Validar estrutura e campos relevantes.
+- Tratar corretamente dependências obrigatórias, opcionais, escondidas/de ordenação, incompatibilidades, restrições de versão e dependências transitivas; verificar a sintaxe oficial antes de implementar parser.
+- Distinguir mods normais do Portal de módulos oficiais de base e da expansão Space Age (não tentar baixar DLC do Portal).
+- Verificar a versão vinculada do jogo e a versão do mod. Não assumir que um mod para Factorio 1.1 roda no 2.x.
+- Exibir relatório do resolvedor e obter confirmação antes de alterar vários mods. Em conflito insolúvel, interromper a operação com mensagem clara e nenhuma instalação parcial.
+- Mod settings, mod-list e versões devem refletir cada perfil, sem se propagar inadvertidamente a outros.
+
+## 8. ESTRUTURA DE PASTAS SUGERIDA
+
+factorio-modpack-launcher/
+  pyproject.toml
+  README.md
+  start.ps1
+  build.ps1
+  src/factorio_launcher/
+    app.py
+    ui/
+    models/
+    services/
+      install_detector.py
+      profile_manager.py
+      game_runner.py
+      config_manager.py
+      save_manager.py
+      local_mods.py
+      portal_client.py
+      download_manager.py
+      dependency_resolver.py
+      auth_store.py
+      backups.py
+    persistence/
+  tests/
+  docs/STATUS.md
+
+Dados de usuário:
+%LOCALAPPDATA%/FactorioModpackLauncher/
+  settings.json
+  installs.json
+  cache/mods/
+  profiles/<uuid>/
+    manifest.json
+    mods/
+    config/config.ini
+    userdata/saves/ [para modo exclusivo]
+    backups/
+
+A estrutura é sugestão. Ajuste quando houver motivo claro, sem criar abstrações desnecessárias.
+
+## 9. TESTES E CRITÉRIOS DE ACEITE
+
+NÃO considere concluído se apenas houver UI. Confirme:
+
+[ ] `python -m ...` inicia o app e permite navegar.
+[ ] Crio dois perfis (Krastorio/Vanilla, por exemplo) e cada um tem sua pasta `mods` e `mod-list.json` independentes.
+[ ] Instalo ZIP local apenas em um perfil e o outro permanece inalterado.
+[ ] Ativo/desativo mods, duplico e excluo perfil sem tocar nos mods/saves originais.
+[ ] Detecto ou seleciono Factorio instalado e valido sua versão.
+[ ] Clicar JOGAR constrói argumentos corretos e inicia a instalação, quando disponível. Testar `subprocess` com mocks quando indisponível.
+[ ] Posso escolher saves compartilhados/exclusivos; configurações geradas verificadas; teste real claramente marcado como feito ou pendente.
+[ ] A API real lista mods e abre detalhes quando há internet; offline não trava a UI.
+[ ] Download externo exige credencial quando necessário, valida SHA-1 e instala no perfil correto, ou explica corretamente a indisponibilidade de autenticação.
+[ ] Detecto versões incompatíveis e dependências problemáticas.
+[ ] Testes cobrem travessia de paths, ZIP malformado, falha de rede, falha de escrita, token redaction, downloads interrompidos e proteção do diretório global.
+[ ] `pytest` passa ou cada falha remanescente é descrita com causa e impacto.
+[ ] `build.ps1` gera .exe no Windows, se o ambiente permitir PyInstaller. Se não permitir, não invente resultado; documente os comandos para gerar no PC do usuário.
+
+Use mocks e temp dirs para tests; nunca dispare mudanças na Steam ou `%APPDATA%/Factorio` dentro da suíte automatizada.
+
+## 10. RELATÓRIO DE ENTREGA OBRIGATÓRIO
+
+Ao terminar, responda brevemente em PT-BR:
+1. O que FOI IMPLEMENTADO e é clicável/funcional.
+2. O que você TESTOU, comandos e resultados (e se iniciou o Factorio real).
+3. Onde fica o projeto e, se produzido, o .exe.
+4. Como rodar em desenvolvimento e como compilar o executável.
+5. Recursos parciais/não implementados e por quê (incluindo download/login ou saves, se necessário).
+6. Próximo passo recomendado, com prioridade.
+
+IMPORTANTE: Não termine após criar a estrutura ou as telas. Execute o Marco 1, rode testes e avance para o Marco 2 se estiver estável. Escolha defaults sem me perguntar detalhes estéticos: tema escuro, visual moderno e UI PT-BR. Segurança dos saves e isolamento dos mods são prioridade absoluta. Comece agora inspecionando o workspace.

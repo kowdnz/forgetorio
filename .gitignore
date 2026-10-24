@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.pytest_tmp/
+.smoke_data/
+build/
+dist/
+*.egg-info/
+.venv/
+.env
+.env.*
+!.env.example
+player-data.json
+*.pem
+*.key
