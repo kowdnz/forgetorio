@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QColorDialog, QDialog, QDialogButtonBox, QFormLay
 from ..models.entities import SAVE_EXCLUSIVE, SAVE_SHARED, Profile
 from ..services.profile_manager import ProfileError
 from .banner_dialog import BannerDialog
-from .common import confirm, error
+from .common import confirm, error, info
 
 
 def duplicate_profile(ctx, parent: QWidget, p: Profile) -> Profile | None:
@@ -40,10 +40,12 @@ def delete_profile(ctx, parent: QWidget, p: Profile) -> bool:
         error(parent, "Perfil em execução", "O Factorio está rodando com este perfil. Feche o jogo antes de excluir.")
         return False
     try:
-        ctx.pm.delete_profile(p)
+        pending = ctx.pm.delete_profile(p)
     except (ProfileError, OSError) as e:
         error(parent, "Excluir", str(e))
         return False
+    if pending:
+        info(parent, "Perfil excluído (limpeza pendente)", pending)
     return True
 
 

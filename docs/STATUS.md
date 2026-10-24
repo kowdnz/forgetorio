@@ -1,6 +1,6 @@
-# STATUS — Factorio Modpack Launcher 0.1.0
+# STATUS — Factorio Modpack Launcher 0.1.1
 
-Atualizado em 2026-10-23. “Validado no jogo” = executado com o Factorio real desta máquina; “teste automatizado” = pytest com mocks.
+Atualizado em 2026-10-24. “Validado no jogo” = executado com o Factorio real desta máquina; “teste automatizado” = pytest com mocks.
 
 ## Funcionalidades
 
@@ -12,7 +12,7 @@ Atualizado em 2026-10-23. “Validado no jogo” = executado com o Factorio real
 | Instalar ZIP local (validação de info.json, path traversal, ZIP malformado), habilitar/desabilitar, remover | Funcional | Testes |
 | Importar mods da pasta atual do Factorio (somente cópia; origem intocada) | Funcional | Teste + real (42 mods, 0 erros) |
 | Mod em desenvolvimento (importar pasta, abrir pasta, último erro do log) | Funcional (básico) | Teste de importação; leitura de log só manual |
-| JOGAR com `--mod-directory`/`--config`; bloqueia 2ª instância | Funcional | Testes de argumentos (mock); real via `--create` (ver abaixo) |
+| JOGAR com `--mod-directory`/`--config`; Steam via `-applaunch 427520`; bloqueia 2ª instância | Funcional | Testes de argumentos e acompanhamento do processo (mock); real via `--create` para a instalação independente (ver abaixo) |
 | Saves exclusivos/compartilhados + troca de modo + aviso | Funcional | Testes do config.ini; **real**: ver abaixo |
 | **Busca por tags** (`POST /api/search`): barra lateral (incluir / excluir), comandos `$trains`, `$trains $logistics` (todas), `-$combat`, `cargo $trains`, autocomplete ao digitar `$`, aliases PT/EN → 18 ids oficiais | Funcional (requer login) | **Real**, pela UI, com token: contagens e conteúdo conferidos (ver abaixo) + 39 testes |
 | Explorar Mods no estilo do navegador do Factorio: filtros laterais (categorias com contagem, compatibilidade, instalados), lista paginada com ícones, ordenação, painel de detalhes (descrição, autor, links do Portal/homepage/código, versão do Factorio, dependências coloridas, registro de mudanças) | Funcional | Real (captura de tela com ícones do Portal) + testes |

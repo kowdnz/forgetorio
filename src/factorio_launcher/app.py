@@ -42,6 +42,7 @@ class AppContext:
 
 def main(argv: list[str] | None = None) -> int:
     setup_logging()
+    from PySide6.QtGui import QIcon
     from PySide6.QtWidgets import QApplication
 
     from .ui.main_window import MainWindow
@@ -49,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
 
     app = QApplication(argv if argv is not None else sys.argv)
     app.setApplicationName("Factorio Modpack Launcher")
+    app.setWindowIcon(QIcon(str(Path(__file__).resolve().parent / "assets" / "app.png")))
     apply_theme(app)
     ctx = AppContext()
     win = MainWindow(ctx)

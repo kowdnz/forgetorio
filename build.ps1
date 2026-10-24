@@ -7,6 +7,8 @@ $py = if (Test-Path ".venv\Scripts\python.exe") { ".\.venv\Scripts\python.exe" }
 if ($LASTEXITCODE -ne 0) { throw "Testes falharam; build cancelado." }
 & $py -m PyInstaller --noconfirm --clean --windowed --name FactorioModpackLauncher `
     --paths src --collect-submodules keyring.backends `
+    --icon src\factorio_launcher\assets\app.ico `
+    --add-data "src\factorio_launcher\assets\app.png;factorio_launcher\assets" `
     --exclude-module PySide6.QtWebEngineCore --exclude-module PySide6.QtWebEngineWidgets `
     --exclude-module PySide6.QtPdf --exclude-module PySide6.Qt3DCore --exclude-module PySide6.QtQuick `
     src\factorio_launcher\__main__.py

@@ -173,3 +173,73 @@ def test_write_failure_leaves_original(tmp_path, monkeypatch):
     monkeypatch.undo()
     assert load_json(f)["a"] == 1
     assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_delete_with_locked_files_hides_profile_and_cleans_later(pm, fake_install, mkzip, monkeypatch, tmp_path):
+    """WinError 32: o perfil some da lista, o app avisa e a sobra é apagada na próxima abertura."""
+    import shutil
+    from factorio_launcher.services.profile_manager import ProfileManager
+    p = pm.create_profile("Travado", fake_install)
+    pm.install_zip(p, mkzip("M", "1.0.0"))
+    (pm.saves_dir(p) / "s.zip").write_bytes(b"x")
+    root = pm.profile_root(p.id)
+
+    def locked(path, *a, **k):
+        raise PermissionError(32, "O arquivo já está sendo usado por outro processo", str(path))
+
+    monkeypatch.setattr(shutil, "rmtree", locked)
+    monkeypatch.setattr(ProfileManager, "_rmtree_retry", staticmethod(lambda r, tries=4, wait=0.5: "em uso"))
+    msg = pm.delete_profile(p)
+    assert msg and "removido da lista" in msg and "em uso" in msg
+    assert pm.get_profile(p.id) is None and root.exists() and (root / ".deleting").is_file()
+    monkeypatch.undo()
+    other = pm.create_profile("Outro", fake_install)
+    pm2 = ProfileManager(pm.data_dir, pm.system_factorio)          # "reinício": conclui a limpeza pendente
+    assert not root.exists()
+    assert pm2.get_profile(other.id) is not None                    # perfis normais intactos
+
+
+def test_delete_retries_then_succeeds(pm, fake_install, monkeypatch):
+    import shutil
+    p = pm.create_profile("Retry", fake_install)
+    real, calls = shutil.rmtree, {"n": 0}
+
+    def flaky(path, *a, **k):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise PermissionError(32, "em uso")
+        return real(path, *a, **k)
+
+    monkeypatch.setattr(shutil, "rmtree", flaky)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    assert pm.delete_profile(p) is None and calls["n"] == 3
+    assert not pm.profile_root(p.id).exists()
+
+
+def test_purge_ignores_folders_without_marker(pm, fake_install):
+    from factorio_launcher.services.profile_manager import ProfileManager
+    stranger = pm.profiles_root / "algo-do-usuario"
+    stranger.mkdir()
+    (stranger / "arquivo.txt").write_text("não apagar")
+    ProfileManager(pm.data_dir, pm.system_factorio)
+    assert (stranger / "arquivo.txt").exists()
+
+
+def test_pending_marker_survives_failed_cleanup(pm, fake_install, monkeypatch):
+    """Regressão: o rmtree parcial apagava a própria marca e a sobra nunca era limpa."""
+    from factorio_launcher.services.profile_manager import ProfileManager
+    p = pm.create_profile("Marca", fake_install)
+    root = pm.profile_root(p.id)
+
+    def partial(r, tries=4, wait=0.5):
+        for f in root.rglob("*"):
+            if f.is_file():
+                f.unlink()          # apaga tudo (inclusive a marca), deixando só a pasta "travada"
+        return "em uso"
+
+    monkeypatch.setattr(ProfileManager, "_rmtree_retry", staticmethod(partial))
+    assert pm.delete_profile(p)
+    assert (root / ".deleting").is_file()
+    monkeypatch.undo()
+    ProfileManager(pm.data_dir, pm.system_factorio)
+    assert not root.exists()

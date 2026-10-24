@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from factorio_launcher.services.game_runner import GameRunner, LaunchError, build_args
+from factorio_launcher.services.game_runner import GameRunner, LaunchError, SteamGameProcess, build_args
 
 
 class FakePopen:
@@ -33,6 +33,36 @@ def test_launch_uses_list_no_shell_and_paths_with_spaces(pm, fake_install):
     assert seen["args"][1] == "--mod-directory" and seen["args"][2] == str(pm.mods_dir(p))
     assert seen["args"][3] == "--config" and seen["args"][4] == str(pm.config_file(p))
     assert r.is_profile_running(p.id) and p.last_played
+
+
+def test_steam_install_launches_via_steam_and_tracks_game(pm, fake_install, tmp_path, monkeypatch):
+    steam_root = tmp_path / "Steam"
+    steam_root.mkdir()
+    steam_exe = steam_root / "steam.exe"
+    steam_exe.write_bytes(b"MZ")
+    monkeypatch.setattr("factorio_launcher.services.game_runner._steam_roots", lambda: [steam_root])
+    game_root = tmp_path / "Other Library" / "steamapps" / "common" / "Factorio"
+    game_exe = game_root / "bin" / "x64" / "factorio.exe"
+    game_exe.parent.mkdir(parents=True)
+    game_exe.write_bytes(b"MZ")
+    fake_install.path, fake_install.exe = str(game_root), str(game_exe)
+    p = pm.create_profile("Steam", fake_install)
+    calls = []
+    pids = []
+    runner = GameRunner(pid_lister=lambda: pids, popen=lambda args, **kw: calls.append((args, kw)) or FakePopen(args, **kw))
+
+    proc = runner.launch(p, fake_install, pm.mods_dir(p), pm.config_file(p))
+
+    assert calls[0][0] == [str(steam_exe), "-applaunch", "427520", "--mod-directory",
+                            str(pm.mods_dir(p)), "--config", str(pm.config_file(p))]
+    assert calls[0][1]["cwd"] == str(steam_root)
+    assert isinstance(proc, SteamGameProcess)
+    assert runner.is_profile_running(p.id)
+    pids.append(123)
+    assert runner.is_profile_running(p.id)
+    pids.clear()
+    assert not runner.is_profile_running(p.id)
+    assert proc.elapsed_seconds() >= 0
 
 
 def test_launch_blocked_when_running(pm, fake_install):

@@ -127,10 +127,12 @@ class ProfilePage(QWidget):
         if self._busy_check():
             return
         try:
-            self.ctx.pm.delete_profile(self.p)
+            pending = self.ctx.pm.delete_profile(self.p)
         except (ProfileError, OSError) as e:
             error(self, "Excluir", str(e))
             return
+        if pending:
+            info(self, "Perfil excluído (limpeza pendente)", pending)
         self.p = None
         self.win.goto(self.win.library)
 

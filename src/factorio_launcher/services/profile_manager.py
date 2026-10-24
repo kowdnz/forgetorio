@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import stat
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,6 +40,7 @@ class ProfileManager:
         self.assets = AssetService(self.data_dir)
         self._summary_cache: dict[str, tuple[tuple, ProfileSummary]] = {}
         self._mods_cache: dict[str, tuple[tuple, list[ModInfo]]] = {}
+        self.purge_pending_deletions()
 
     # ---------- instalações ----------
     @property
@@ -180,13 +184,68 @@ class ProfileManager:
         if mode_changed or "shared_dir" in changes or "install_id" in changes:
             self.regenerate_config(p)
 
-    def delete_profile(self, p: Profile) -> None:
+    PENDING_MARK = ".deleting"
+
+    def delete_profile(self, p: Profile) -> str | None:
         """Remove SOMENTE a pasta do perfil dentro do diretório do launcher (incluindo saves exclusivos).
-        Saves compartilhados e %APPDATA%/Factorio nunca são tocados."""
+        Saves compartilhados e %APPDATA%/Factorio nunca são tocados.
+
+        O perfil sai da lista primeiro (manifesto removido + marca ".deleting"), depois a pasta é apagada com novas
+        tentativas — no Windows um arquivo aberto por outro processo (Explorer, antivírus, indexador) causa WinError 32.
+        Se algo continuar em uso, o perfil JÁ está removido da lista e o restante é apagado na próxima abertura do
+        launcher; nesse caso devolve uma mensagem explicativa (None = tudo apagado)."""
         root = self.profile_root(p.id)
         if root.parent != self.profiles_root.resolve() or not (root / "manifest.json").is_file():
             raise ProfileError("Pasta de perfil inesperada; exclusão cancelada.")
-        shutil.rmtree(root)
+        (root / self.PENDING_MARK).write_text("pendente de exclusão\n", encoding="utf-8")
+        for name in ("manifest.json", "manifest.json.bak"):
+            (root / name).unlink(missing_ok=True)
+        self._summary_cache.pop(p.id, None)
+        self._mods_cache.pop(p.id, None)
+        leftover = self._rmtree_retry(root)
+        if leftover is None:
+            return None
+        try:   # a tentativa de apagar levou a marca junto: recria para a limpeza da próxima abertura
+            (root / self.PENDING_MARK).write_text("pendente de exclusão\n", encoding="utf-8")
+        except OSError:
+            pass
+        return ("O perfil foi removido da lista, mas alguns arquivos continuam em uso por outro programa "
+                "(feche janelas do Explorer abertas nessa pasta, o Factorio ou pause o antivírus). "
+                "O restante será apagado automaticamente na próxima vez que o launcher abrir.\n\n"
+                f"Detalhe: {leftover}")
+
+    @staticmethod
+    def _rmtree_retry(root: Path, tries: int = 4, wait: float = 0.5) -> str | None:
+        """rmtree com novas tentativas e remoção de somente-leitura. Devolve o último erro ou None se apagou tudo."""
+        def on_error(func, path, exc):
+            try:
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+            except OSError:
+                pass
+
+        err = None
+        for i in range(tries):
+            try:
+                shutil.rmtree(root, onexc=on_error)
+            except (OSError, TypeError) as e:
+                err = e
+            if not root.exists():
+                return None
+            time.sleep(wait * (i + 1))
+        remaining = None
+        for dirpath, dirs, files in os.walk(root):
+            remaining = Path(dirpath) / (files[0] if files else "")
+            break
+        return str(err) if err else f"não foi possível remover {remaining}"
+
+    def purge_pending_deletions(self) -> None:
+        """Conclui exclusões que ficaram pendentes (arquivos em uso na ocasião). Nunca apaga pastas sem a marca."""
+        if not self.profiles_root.is_dir():
+            return
+        for d in self.profiles_root.iterdir():
+            if d.is_dir() and (d / self.PENDING_MARK).is_file() and not (d / "manifest.json").exists():
+                self._rmtree_retry(d, tries=1, wait=0)
 
     # ---------- personalização / metadados ----------
     def set_favorite(self, p: Profile, value: bool) -> None:

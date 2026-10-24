@@ -12,3 +12,4 @@ dist/
 player-data.json
 *.pem
 *.key
+.pytest_run/

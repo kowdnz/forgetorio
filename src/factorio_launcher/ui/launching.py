@@ -7,7 +7,7 @@ import time
 from PySide6.QtWidgets import QWidget
 
 from ..models.entities import Profile
-from ..services.game_runner import LaunchError
+from ..services.game_runner import LaunchError, SteamGameProcess
 from ..services.profile_manager import ProfileError
 from .common import error
 
@@ -36,7 +36,8 @@ def launch_profile(ctx, parent: QWidget, p: Profile, extra: list[str] | None = N
                 proc.wait()
             except Exception:  # noqa: BLE001
                 return
-            ctx.on_game_exit(pid, int(time.time() - t0))
+            seconds = proc.elapsed_seconds() if isinstance(proc, SteamGameProcess) else int(time.time() - t0)
+            ctx.on_game_exit(pid, seconds)
 
         threading.Thread(target=watch, daemon=True, name=f"play-{pid[:6]}").start()
     return True

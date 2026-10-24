@@ -3,7 +3,7 @@
 | Pasta | Conteúdo |
 |---|---|
 | `factorio/` | (vazia no repositório) imagens oficiais da Wube — **não embutidas**, ver abaixo |
-| `launcher/` | (vazia) ícones e placeholders do launcher são desenhados em código (`ui/icons.py`, `ui/imagecache.py`) |
+| `launcher/` | (vazia) ícones da interface e placeholders são desenhados em código (`ui/icons.py`, `ui/imagecache.py`); o ícone do app fica em `src/factorio_launcher/assets/` |
 | `manifest.json` | catálogo de URLs oficiais, fonte, autor e licença de cada imagem |
 
 ## Política de imagens oficiais do Factorio

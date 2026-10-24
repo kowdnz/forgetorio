@@ -10,11 +10,14 @@ você já tem instalado (Steam ou standalone) — nada do jogo é copiado ou red
 
 ## Como funciona o isolamento
 
-O jogo é iniciado assim, sem nunca mexer em `%APPDATA%/Factorio/mods`:
+O jogo recebe estes parâmetros, sem nunca mexer em `%APPDATA%/Factorio/mods`:
 
 ```
 factorio.exe --mod-directory <dados>/profiles/<uuid>/mods --config <dados>/profiles/<uuid>/config/config.ini
 ```
+
+Nas instalações Steam, o launcher envia esses parâmetros por `steam.exe -applaunch 427520` para evitar a confirmação
+de argumentos personalizados. Nas instalações independentes, inicia `factorio.exe` diretamente.
 
 | Modo | `write-data` no config.ini do perfil | O que fica isolado |
 |---|---|---|
@@ -35,7 +38,7 @@ $env:PYTHONPATH="src"; python -m factorio_launcher
 ## Testes
 
 ```powershell
-python -m pytest -q               # 152 testes, isolados (tmp dirs; não tocam %APPDATA%/Factorio)
+python -m pytest -q               # testes isolados (tmp dirs; não tocam %APPDATA%/Factorio)
 ```
 
 ## Gerar o .exe
