@@ -1,4 +1,4 @@
-# STATUS — Factorio Modpack Launcher 0.1.1
+# STATUS — Factorio Modpack Launcher 0.1.2
 
 Atualizado em 2026-10-24. “Validado no jogo” = executado com o Factorio real desta máquina; “teste automatizado” = pytest com mocks.
 
@@ -24,7 +24,7 @@ Atualizado em 2026-10-24. “Validado no jogo” = executado com o Factorio real
 | Atualizar mods, fixar versões (lockfile no manifesto), backup antes de atualizar | Funcional | Testes de resolvedor/backup; fluxo de UI sem teste real de download |
 | Backup/restauração de perfil (mods, config, saves opcionais), exportar/importar lista de mods | Funcional | Testes |
 | Downloads: fila, progresso, erro, retry, cancelar | Funcional | Testes + UI offscreen |
-| `.exe` PyInstaller | Gerado em `dist/` | Abre e cria logs (`FML_DATA_DIR` isolado) |
+| `.exe` PyInstaller com ícone próprio | Gerado em `dist/` | Abre e cria logs (`FML_DATA_DIR` isolado) |
 
 ## Validação real com o Factorio (2.0.77, E:)
 
