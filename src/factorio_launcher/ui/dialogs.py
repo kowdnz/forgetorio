@@ -32,10 +32,11 @@ class NewProfileDialog(QDialog):
         self.source = QComboBox()
         for p in profiles:
             self.source.addItem(p.name, p.id)
-        self.source.setEnabled(False)
         self.copy_saves = QCheckBox("Copiar também os saves exclusivos do perfil de origem")
-        self.copy_saves.setEnabled(False)
         self.template.currentIndexChanged.connect(self._tpl)
+        self._tpl()
+        # escolher outra origem só faz sentido ao duplicar: troca o modelo sozinho
+        self.source.activated.connect(lambda _=0: self.template.setCurrentIndex(self.template.findData("duplicate")))
         self.excl = QRadioButton("Saves exclusivos (recomendado)")
         self.shared = QRadioButton("Saves compartilhados")
         self.excl.setChecked(True)
@@ -68,7 +69,6 @@ class NewProfileDialog(QDialog):
 
     def _tpl(self) -> None:
         dup = self.template.currentData() == "duplicate"
-        self.source.setEnabled(dup)
         self.copy_saves.setEnabled(dup)
 
     def _pick(self) -> None:

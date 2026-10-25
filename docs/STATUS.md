@@ -1,4 +1,4 @@
-# STATUS — Factorio Modpack Launcher 0.1.2
+# STATUS — Factorio Modpack Launcher 0.1.3
 
 Atualizado em 2026-10-24. “Validado no jogo” = executado com o Factorio real desta máquina; “teste automatizado” = pytest com mocks.
 

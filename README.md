@@ -60,6 +60,12 @@ python -m pytest -q               # testes isolados (tmp dirs; não tocam %APPDA
 
 Veja [docs/STATUS.md](docs/STATUS.md) para o estado real das funcionalidades e o que foi validado.
 
+## Apresentação animada
+
+Abra [promo/index.html](promo/index.html) no navegador para ver uma apresentação de 24 segundos feita em HTML, CSS e
+JavaScript. A animação mostra perfis, exploração de mods, saves e backups. Use os controles para pausar, avançar ou
+recomeçar; não precisa instalar nada nem acessar a internet.
+
 ## Banners dos perfis
 Editar → Alterar banner: imagens oficiais do Factorio (baixadas do site oficial para o seu cache local, ver
 [assets/README.md](assets/README.md)), imagem do seu computador ou padrão. Nada da Wube vem embutido no launcher.

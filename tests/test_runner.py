@@ -65,6 +65,19 @@ def test_steam_install_launches_via_steam_and_tracks_game(pm, fake_install, tmp_
     assert proc.elapsed_seconds() >= 0
 
 
+def test_non_managed_steam_folder_runs_own_exe(fake_install, tmp_path, monkeypatch):
+    from factorio_launcher.services.game_runner import steam_exe_for_install
+    steam_root = tmp_path / "Steam"
+    steam_root.mkdir()
+    (steam_root / "steam.exe").write_bytes(b"MZ")
+    monkeypatch.setattr("factorio_launcher.services.game_runner._steam_roots", lambda: [steam_root])
+    common = tmp_path / "Lib" / "steamapps" / "common"
+    fake_install.path = str(common / "Factorio_2.0.76")
+    assert steam_exe_for_install(fake_install) is None
+    fake_install.path = str(common / "Factorio")
+    assert steam_exe_for_install(fake_install) is not None
+
+
 def test_launch_blocked_when_running(pm, fake_install):
     p = pm.create_profile("Run", fake_install)
     r = GameRunner(pid_lister=lambda: [123], popen=FakePopen)

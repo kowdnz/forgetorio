@@ -24,9 +24,12 @@ def build_args(install: FactorioInstall, mods_dir: Path, config_path: Path,
 
 
 def steam_exe_for_install(install: FactorioInstall) -> Path | None:
-    """Use a Steam para jogos instalados em uma de suas bibliotecas."""
+    """Use a Steam só para a pasta que ela gerencia (steamapps/common/Factorio).
+
+    -applaunch sempre abre a versão da Steam; outras cópias/versões devem rodar o próprio exe."""
     root = Path(install.path)
-    if root.parent.name.lower() != "common" or root.parent.parent.name.lower() != "steamapps":
+    if (root.name.lower() != "factorio" or root.parent.name.lower() != "common"
+            or root.parent.parent.name.lower() != "steamapps"):
         return None
     for steam_root in _steam_roots():
         exe = steam_root / "steam.exe"

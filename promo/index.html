@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101318">
+  <title>Forgetorio — apresentação</title>
+  <link rel="icon" href="../src/factorio_launcher/assets/app.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="promo.js" defer></script>
+</head>
+<body>
+  <main class="player" aria-label="Apresentação do Forgetorio">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="grid"></div>
+
+    <header class="topbar">
+      <div class="brand"><span class="brand-dot"></span> FORGETORIO <span class="brand-version">0.1.3</span></div>
+      <div class="top-right"><span>APRESENTAÇÃO</span><span class="top-separator"></span><span id="counter">00:00 / 00:24</span></div>
+    </header>
+
+    <section class="scene active" data-scene="0" aria-label="Abertura">
+      <div class="intro-art">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <img class="app-icon" src="../src/factorio_launcher/assets/app.png" alt="Ícone do Forgetorio">
+      </div>
+      <div class="intro-copy">
+        <span class="eyebrow">O SEU FACTORIO, ORGANIZADO</span>
+        <h1>Um launcher para cada <em>aventura.</em></h1>
+        <p>Perfis, mods e saves em um só lugar.</p>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="1" aria-label="Perfis independentes">
+      <div class="copy">
+        <span class="eyebrow"><span class="step">01</span> PERFIS INDEPENDENTES</span>
+        <h2>Um mundo novo.<br><em>Sem bagunçar o outro.</em></h2>
+        <p>Cada perfil guarda seus próprios mods e configurações.</p>
+        <div class="pills"><span>MODS ISOLADOS</span><span>CONFIGURAÇÕES PRÓPRIAS</span></div>
+      </div>
+      <div class="mockup profiles-mockup" aria-hidden="true">
+        <div class="mockbar"><span class="mock-logo">✦</span> Biblioteca <span class="mockbar-right">⌕ &nbsp; ＋ Novo perfil</span></div>
+        <div class="profile-grid">
+          <div class="profile-card profile-one"><div class="card-art terrain-one"></div><div class="card-body"><b>Space Age</b><span>12 mods ativos</span><small><i></i> Perfil independente</small></div></div>
+          <div class="profile-card profile-two"><div class="card-art terrain-two"></div><div class="card-body"><b>Vanilla+</b><span>4 mods ativos</span><small><i></i> Perfil independente</small></div></div>
+        </div>
+        <div class="connector"><span></span><span></span><span></span></div>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="2" aria-label="Exploração de mods">
+      <div class="copy">
+        <span class="eyebrow"><span class="step">02</span> EXPLORAR MODS</span>
+        <h2>Encontre. Instale.<br><em>Continue jogando.</em></h2>
+        <p>Busque no Mod Portal, filtre por tags e veja as dependências antes de instalar.</p>
+        <div class="pills"><span>BUSCA POR TAGS</span><span>DEPENDÊNCIAS</span></div>
+      </div>
+      <div class="mockup mods-mockup" aria-hidden="true">
+        <div class="mockbar"><span class="mock-logo">✦</span> Explorar Mods <span class="mockbar-right">CATÁLOGO</span></div>
+        <div class="search-box"><span>⌕</span><b>trains</b><i></i></div>
+        <div class="tag-row"><span class="selected"># transportes</span><span># logística</span><span># qualidade de vida</span></div>
+        <div class="mod-row mod-first"><div class="mod-icon rail">▦</div><div><b>Rail Planner</b><small>Planeje redes ferroviárias com facilidade</small></div><span class="install">＋ Instalar</span></div>
+        <div class="mod-row mod-second"><div class="mod-icon signal">◈</div><div><b>Signal Tools</b><small>Sinais e estações sob controle</small></div><span class="installed">✓ Instalado</span></div>
+        <div class="dependency">✓ Dependências verificadas automaticamente</div>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="3" aria-label="Saves e backups">
+      <div class="copy">
+        <span class="eyebrow"><span class="step">03</span> SAVES E BACKUPS</span>
+        <h2>Seu progresso<br><em>do seu jeito.</em></h2>
+        <p>Escolha saves exclusivos ou compartilhados. Faça backup do perfil quando quiser.</p>
+        <div class="pills"><span>SAVES EXCLUSIVOS</span><span>BACKUP DO PERFIL</span></div>
+      </div>
+      <div class="mockup saves-mockup" aria-hidden="true">
+        <div class="mockbar"><span class="mock-logo">✦</span> Detalhes do perfil <span class="mockbar-right">SPACE AGE</span></div>
+        <div class="save-heading">Onde guardar os saves?</div>
+        <div class="save-option chosen"><span class="radio"></span><div><b>Exclusivos deste perfil</b><small>Separados dos seus outros mundos</small></div><span class="option-check">✓</span></div>
+        <div class="save-option"><span class="radio"></span><div><b>Compartilhados</b><small>Use a pasta comum do Factorio</small></div></div>
+        <div class="save-footer"><span>▣ &nbsp; Backup do perfil</span><span>☁ &nbsp; Ver inventário Steam Cloud</span></div>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="4" aria-label="Jogar">
+      <div class="end-glow"></div>
+      <img class="end-icon" src="../src/factorio_launcher/assets/app.png" alt="">
+      <span class="eyebrow end-eyebrow">TUDO PRONTO</span>
+      <h2 class="end-title">Seu próximo mundo<br><em>começa aqui.</em></h2>
+      <div class="play-button"><span>▶</span> JOGAR</div>
+      <div class="end-brand">FORGETORIO <span>•</span> PERFIS &nbsp; MODS &nbsp; SAVES</div>
+    </section>
+
+    <footer class="controls">
+      <button type="button" id="toggle" aria-label="Pausar apresentação">Ⅱ <span>Pausar</span></button>
+      <div class="timeline" id="timeline" role="slider" tabindex="0" aria-label="Posição da apresentação" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0">
+        <div class="timeline-track"><div class="timeline-fill" id="progress"></div></div>
+        <div class="timeline-marks"><span>INTRO</span><span>PERFIS</span><span>MODS</span><span>SAVES</span><span>JOGAR</span></div>
+      </div>
+      <button type="button" id="replay" aria-label="Reiniciar apresentação">↺ <span>Reiniciar</span></button>
+    </footer>
+  </main>
+</body>
+</html>
